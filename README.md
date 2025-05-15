@@ -32,7 +32,7 @@ bash install_dependencies.sh
 4. Install the RareFold environment
 
 # Predict using RareFold
-## Run the test case (a few minutes)
+Run the test case (a few minutes)
 ```
 conda activate rarefold
 bash predict.sh
