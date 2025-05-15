@@ -26,10 +26,11 @@ First install miniconda, see: https://docs.conda.io/projects/miniconda/en/latest
 bash install_dependencies.sh
 ```
 
-1. Get the RareFold parameters for single-chain structure prediction
-2. Get the EvoBindRare parameters for binder design
-3. Get Uniclust for MSA search
-4. Install the RareFold environment
+1. Install the RareFold environment
+2. Get the RareFold parameters for single-chain structure prediction
+3. Get the EvoBindRare parameters for binder design
+4. Get Uniclust for MSA search
+5. Install HHblits for MSA search 
 
 # Predict using RareFold
 Run the test case (a few minutes)
