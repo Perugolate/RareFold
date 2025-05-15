@@ -47,8 +47,8 @@ bash predict.sh
 &nbsp; &nbsp; &nbsp; &nbsp;
   <img alt="Cyclic" src="./cyclic.gif" width="45%">
 </p>
-The target structure is represented in green, the regular binder residues in
-blue and the noncanonical ones in magenta.
+
+The target structure is shown in green, with canonical peptide residues in blue and noncanonical residues in magenta.
 
 ```
 conda activate rarefold
