@@ -18,12 +18,12 @@ import tensorflow.compat.v1 as tf
 tf.config.set_visible_devices([], 'GPU')
 
 #Custom imports from rarefold
-from net.rarefold.common import protein
-from net.rarefold.common import residue_constants
-from net.rarefold.model import data
-from net.rarefold.model import config
-from net.rarefold.model import features
-from net.rarefold.model import modules
+from rarefold.common import protein
+from rarefold.common import residue_constants
+from rarefold.model import data
+from rarefold.model import config
+from rarefold.model import features
+from rarefold.model import modules
 
 import argparse
 import pandas as pd
@@ -174,26 +174,47 @@ def update_features(feature_dict, int_peptide_seq, config):
 
 
 ##########MODEL and DESIGN#########
+def get_int_seq(int_protein_seq, protein_seq):
+    """
+    #Map the protein_seq to int representation
+    """
 
+    all_AAs = np.array([*residue_constants.restype_name_to_atom14_names.keys()])
+
+    ps = protein_seq.split('-') #Split to get NCAAs
+    psi = 0 #Keep track of split index
+    for i in np.argwhere(np.array(int_protein_seq)==20)[:,0]:
+        #Replace
+        if i>0:
+            AA = ps[psi+1]
+        else:
+            AA = ps[psi]
+        int_protein_seq[i] = np.argwhere(all_AAs==AA)[0][0]
+
+        psi+=1
+
+    mapped_protein_seq = '-'.join([all_AAs[x] for x in int_protein_seq])
+
+    return int_protein_seq, mapped_protein_seq
 
 def predict(config,
-                predict_id,
-                MSA_feats,
-                peptide_seq,
-                num_recycles=3,
-                params=None,
-                outdir=None):
+            predict_id,
+            MSA_feats,
+            protein_seq,
+            num_recycles=3,
+            params=None,
+            outdir=None):
     """Predict a protein-peptide complex where the peptide has
     non-nanonical amino acids
     """
 
 
-    #Map the peptide_seq to onehot
-    all_AAs = np.array([*residue_constants.restype_name_to_atom14_names.keys()])
-    int_peptide_seq = []
-    for AA in peptide_seq.split('-'):
-        int_peptide_seq.append(np.argwhere(all_AAs==AA)[0][0])
-    print('Using peptide sequence', peptide_seq)
+
+    int_protein_seq = [*np.argmax(MSA_feats['aatype'],axis=1)]
+    int_protein_seq, mapped_protein_seq = get_int_seq(int_protein_seq, protein_seq)
+
+    print('Using protein sequence', mapped_protein_seq)
+    pdb.set_trace()
 
     #Define the forward function
     def _forward_fn(batch):
@@ -266,7 +287,7 @@ def save_structure(save_feats, result, id, outdir):
 args = parser.parse_args()
 predict_id = args.predict_id[0]
 MSA_feats = np.load(args.MSA_feats[0], allow_pickle=True)
-peptide_seq = read_fasta(args.peptide_fasta[0])
+protein_seq = read_fasta(args.fasta[0])
 num_recycles = args.num_recycles[0]
 params = args.params[0]
 outdir = args.outdir[0]
@@ -275,7 +296,7 @@ outdir = args.outdir[0]
 predict(config.CONFIG,
             predict_id,
             MSA_feats,
-            peptide_seq,
+            protein_seq,
             num_recycles=num_recycles,
             params=params,
             outdir=outdir)

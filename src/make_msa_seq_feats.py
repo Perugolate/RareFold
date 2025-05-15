@@ -16,8 +16,8 @@
 import os
 import sys
 from typing import Mapping, Optional, Sequence
-from net.rarefold.common import residue_constants
-from net.rarefold.data import parsers
+from rarefold.common import residue_constants
+from rarefold.data import parsers
 import numpy as np
 import argparse
 import pickle

@@ -6,6 +6,7 @@ ID=1FU0
 DATADIR=$BASE/data/predict_test_case/$ID
 FASTAFILE=$DATADIR/$ID'.fasta'
 NUM_REC=3 #Number of recycles to use for the prediction
+PARAMS=$BASE/data/params/params20000.npy
 OUTDIR=$BASE/data/predict_test_case/$ID'/'
 # The sequence has to be defined with the noncanonical amino acids (NCAAs) in
 # threeletter code separated by hyphens, and the regular in oneletter e.g.
@@ -44,4 +45,5 @@ python3 ./src/predict_sc.py --predict_id $ID \
 --MSA_feats $MSA_FEATS \
 --fasta $FASTAFILE \
 --num_recycles $NUM_REC \
---params $PARAMS
+--params $PARAMS \
+--outdir $OUTDIR
