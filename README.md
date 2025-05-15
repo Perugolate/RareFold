@@ -1,6 +1,8 @@
 # RareFold
 Structure prediction and design of proteins with noncanonical amino acids
 
+<img src="./RareFold.svg"/>
+
 # LICENSE
 
 Prediction with RareFold - open
