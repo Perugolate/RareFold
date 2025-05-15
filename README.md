@@ -2,7 +2,10 @@
 Structure prediction and design of proteins with noncanonical amino acids.
 
 **RareFold** predicts single-chain protein structures containing noncanonical amino acids and enables the design of novel peptide binders through the EvoBindRare framework. \
-**EvoBindRare** designs both linear and cyclic binders directly from a protein target sequence—no prior knowledge of binding sites is required (though optional). This allows rapid, flexible design of binders with expanded chemical diversity.
+**EvoBindRare** designs both linear and cyclic binders directly from a protein target sequence—no prior knowledge of binding sites is required (though optional).The framework enables rapid and flexible design with expanded chemical diversity through the incorporation of noncanonical amino acids. EvoBindRare has been experimentally validated for both linear and cyclic designs, achieving high-affinity binding in each case.
+
+[Read more here]:(link)
+
 
 <img src="./RareFold.svg"/>
 
@@ -30,7 +33,7 @@ bash install_dependencies.sh
 2. Get the RareFold parameters for single-chain structure prediction
 3. Get the EvoBindRare parameters for binder design
 4. Get Uniclust for MSA search
-5. Install HHblits for MSA search 
+5. Install HHblits for MSA search
 
 # Predict using RareFold
 Run the test case (a few minutes)
