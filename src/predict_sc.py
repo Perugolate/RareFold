@@ -1,0 +1,281 @@
+import json
+import os
+import warnings
+import pathlib
+import pickle
+import random
+import sys
+import time
+from typing import Dict, Optional
+from typing import NamedTuple
+import haiku as hk
+import jax
+import jax.numpy as jnp
+import optax
+#Silence tf
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import tensorflow.compat.v1 as tf
+tf.config.set_visible_devices([], 'GPU')
+
+#Custom imports from rarefold
+from net.rarefold.common import protein
+from net.rarefold.common import residue_constants
+from net.rarefold.model import data
+from net.rarefold.model import config
+from net.rarefold.model import features
+from net.rarefold.model import modules
+
+import argparse
+import pandas as pd
+import numpy as np
+from scipy.special import softmax
+import copy
+import pdb
+
+
+parser = argparse.ArgumentParser(description = """Predict a protein structure with noncanonical amino acids using trained weights.""")
+
+parser.add_argument('--predict_id', nargs=1, type= str, default=sys.stdin, help = 'Id for prediction.')
+parser.add_argument('--MSA_feats', nargs=1, type= str, default=sys.stdin, help = 'MSA features.')
+parser.add_argument('--fasta', nargs=1, type= str, default=sys.stdin, help = 'Path to fasta for protein (containing threeletter codes for NCAAs).')
+parser.add_argument('--num_recycles', nargs=1, type= int, default=sys.stdin, help = 'Number of recycles.')
+parser.add_argument('--params', nargs=1, type= str, default=sys.stdin, help = 'Params to use.')
+parser.add_argument('--outdir', nargs=1, type= str, default=sys.stdin, help = 'Path to output directory. Include /in end')
+
+##############FUNCTIONS##############
+##########INPUT DATA#########
+def read_fasta(filename):
+    """Read a fasta sequence with NCAAs
+    """
+
+    with open(filename, 'r') as file:
+        for line in file:
+            if line[0]=='>':
+                continue
+            else:
+                line = line.rstrip()
+                return line
+
+
+
+def process_features(raw_features, config, random_seed):
+    """Processes features to prepare for feeding them into the model.
+
+    Args:
+    raw_features: The output of the data pipeline either as a dict of NumPy
+      arrays or as a tf.train.Example.
+    random_seed: The random seed to use when processing the features.
+
+    Returns:
+    A dict of NumPy feature arrays suitable for feeding into the model.
+    """
+    return features.np_example_to_features(np_example=raw_features,
+                                            config=config,
+                                            random_seed=random_seed)
+
+
+
+def add_input_feats(new_feature_dict, config):
+    """
+    Load all input feats.
+    """
+
+
+    #Number of possible amino acids
+    num_AAs = len(residue_constants.restype_name_to_atom14_names.keys())
+    #Max number of atoms per amino acid in the dense representation
+    num_dense_atom_max = len(residue_constants.restype_name_to_atom14_names['ALA'])
+    #Process the features on CPU (sample MSA)
+    #This also creates mappings for the atoms: 'residx_atom14_to_atom37', 'residx_atom37_to_atom14', 'atom37_atom_exists'
+    new_feature_dict['aatype'] =  np.eye(num_AAs)[new_feature_dict['int_seq']]
+    processed_feature_dict = process_features(new_feature_dict, config, np.random.choice(sys.maxsize))
+
+    #Arrange feats
+    batch_ex = copy.deepcopy(new_feature_dict)
+
+    #If Rare amino acids in the receptor - this has to be specified here
+    #batch_ex['aatype'] = rare_feats['onehot_seq'] #Use the sequence from the structure here - RARE!!!
+    batch_ex['aatype'] = new_feature_dict['int_seq']
+    batch_ex['seq_mask'] = processed_feature_dict['seq_mask']
+    batch_ex['msa_mask'] = processed_feature_dict['msa_mask']
+    batch_ex['residx_atom14_to_atom37'] = processed_feature_dict['residx_atom14_to_atom37']
+    batch_ex['residx_atom37_to_atom14'] = processed_feature_dict['residx_atom37_to_atom14']
+    batch_ex['atom37_atom_exists'] = processed_feature_dict['atom37_atom_exists']
+    batch_ex['extra_msa'] = processed_feature_dict['extra_msa']
+    batch_ex['extra_msa_mask'] = processed_feature_dict['extra_msa_mask']
+    batch_ex['bert_mask'] = processed_feature_dict['bert_mask']
+    batch_ex['true_msa'] = processed_feature_dict['true_msa']
+    batch_ex['extra_has_deletion'] = processed_feature_dict['extra_has_deletion']
+    batch_ex['extra_deletion_value'] = processed_feature_dict['extra_deletion_value']
+    batch_ex['msa_feat'] = processed_feature_dict['msa_feat']
+
+    #Target feats have to be updated with the onehot_seq from the structure to include the modified amino acids
+    batch_ex['target_feat'] =  np.eye(num_AAs)[new_feature_dict['int_seq']]
+    batch_ex['atom14_atom_exists'] = processed_feature_dict['atom14_atom_exists']
+    batch_ex['residue_index'] = processed_feature_dict['residue_index']
+
+    return batch_ex
+
+
+def update_features(feature_dict, int_peptide_seq, config):
+    """Update the features to include the binder sequence
+
+    #From MSA feats
+    'aatype',
+    'between_segment_residues',
+    'domain_name',
+    'residue_index',
+    'seq_length',
+    'sequence',
+    'deletion_matrix_int',
+    'msa',
+    'num_alignments'
+    """
+
+    #Save
+    new_feature_dict = {}
+    peptide_length = len(int_peptide_seq)
+    #Add peptide feats to feature dict
+    #aatype
+    new_feature_dict['int_seq'] = np.concatenate((np.argmax(feature_dict['aatype'],axis=1), np.array(int_peptide_seq)),axis=0)
+    #between_segment_residues
+    new_feature_dict['between_segment_residues'] = np.concatenate((feature_dict['between_segment_residues'],np.zeros((peptide_length), dtype=np.int32)),axis=0)
+    #residue_index
+    new_feature_dict['residue_index'] = np.concatenate((feature_dict['residue_index'],np.array(range(peptide_length), dtype=np.int32)+feature_dict['residue_index'][-1]+201), axis=0)
+    #seq_length
+    new_feature_dict['seq_length'] = np.array([new_feature_dict['int_seq'].shape[0]] * new_feature_dict['int_seq'].shape[0], dtype=np.int32)
+
+    #Merge MSA features
+    #deletion_matrix_int
+    new_feature_dict['deletion_matrix_int']=np.concatenate((feature_dict['deletion_matrix_int'],
+                                            np.zeros((feature_dict['deletion_matrix_int'].shape[0],peptide_length))), axis=1)
+    #msa
+    peptide_msa = np.zeros((feature_dict['msa'].shape[0],peptide_length),dtype=int)
+    peptide_msa[:,:] = 21
+    #Assign first seq - need to have X instead of mod AAs
+    """
+    HHBLITS_AA_TO_ID = {'A': 0,'B': 2,'C': 1,'D': 2,'E': 3,'F': 4,'G': 5,'H': 6,'I': 7,'J': 20,'K': 8,'L': 9,'M': 10,'N': 11,
+                        'O': 20,'P': 12,'Q': 13,'R': 14,'S': 15,'T': 16,'U': 1,'V': 17,'W': 18,'X': 20,'Y': 19,'Z': 3,'-': 21,}
+    """
+    x = copy.deepcopy(np.array(int_peptide_seq))
+    x[x>19]=20
+    peptide_msa[0,:] = x
+
+    new_feature_dict['msa']=np.concatenate((feature_dict['msa'], peptide_msa), axis=1)
+
+    #num_alignments
+    new_feature_dict['num_alignments']=np.concatenate((feature_dict['num_alignments'], feature_dict['num_alignments'][:peptide_length]), axis=0)
+
+    #Process
+    new_feature_dict = add_input_feats(new_feature_dict, config)
+
+
+    return new_feature_dict
+
+
+##########MODEL and DESIGN#########
+
+
+def predict(config,
+                predict_id,
+                MSA_feats,
+                peptide_seq,
+                num_recycles=3,
+                params=None,
+                outdir=None):
+    """Predict a protein-peptide complex where the peptide has
+    non-nanonical amino acids
+    """
+
+
+    #Map the peptide_seq to onehot
+    all_AAs = np.array([*residue_constants.restype_name_to_atom14_names.keys()])
+    int_peptide_seq = []
+    for AA in peptide_seq.split('-'):
+        int_peptide_seq.append(np.argwhere(all_AAs==AA)[0][0])
+    print('Using peptide sequence', peptide_seq)
+
+    #Define the forward function
+    def _forward_fn(batch):
+        '''Define the forward function - has to be a function for JAX
+        '''
+        model = modules.AlphaFold(config.model)
+
+        return model(batch,
+                    is_training=False,
+                    compute_loss=False,
+                    ensemble_representations=False,
+                    return_representations=True)
+
+    #The forward function is here transformed to apply and init functions which
+    #can be called during training and initialisation (JAX needs functions)
+    forward = hk.transform(_forward_fn)
+    apply_fwd = forward.apply
+    #Get a random key
+    rng = jax.random.PRNGKey(42)
+
+    #Load params (need to do this here - need to enable GPU through jax first)
+    params = np.load(params , allow_pickle=True)
+    #Get a feature dict that includes the peptide
+    new_feature_dict = update_features(MSA_feats, int_peptide_seq, config)
+    batch = {}
+    for key in new_feature_dict:
+        batch[key] = np.reshape(new_feature_dict[key], (1, *new_feature_dict[key].shape))
+    batch['num_iter_recycling'] = [num_recycles]
+
+    prediction_result = apply_fwd(params, rng, batch)
+    #Save structure
+    save_feats = {'aatype':batch['aatype'], 'residue_index':batch['residue_index']}
+    result = {'predicted_lddt':prediction_result['predicted_lddt'],
+        'structure_module':{'final_atom_positions':prediction_result['structure_module']['final_atom_positions'],
+        'final_atom_mask': prediction_result['structure_module']['final_atom_mask']
+        }}
+    save_structure(save_feats, result, predict_id, outdir)
+
+
+
+def save_structure(save_feats, result, id, outdir):
+    """Save prediction
+
+    save_feats = {'aatype':batch['aatype'][0][0], 'residue_index':batch['residue_index'][0][0]}
+    result = {'predicted_lddt':aux['predicted_lddt'],
+            'structure_module':{'final_atom_positions':aux['structure_module']['final_atom_positions'][0],
+            'final_atom_mask': aux['structure_module']['final_atom_mask'][0]
+            }}
+    save_structure(save_feats, result, step_num, outdir)
+
+    """
+    #Define the plDDT bins
+    bin_width = 1.0 / 50
+    bin_centers = np.arange(start=0.5 * bin_width, stop=1.0, step=bin_width)
+
+    # Add the predicted LDDT in the b-factor column.
+    plddt_per_pos = jnp.sum(jax.nn.softmax(result['predicted_lddt']['logits']) * bin_centers[None, :], axis=-1)
+    plddt_b_factors = np.repeat(plddt_per_pos[:, None], residue_constants.atom_type_num, axis=-1)
+    unrelaxed_protein = protein.from_prediction(features=save_feats, result=result,  b_factors=plddt_b_factors)
+    unrelaxed_pdb = protein.to_pdb(unrelaxed_protein)
+    unrelaxed_pdb_path = os.path.join(outdir+'/', id+'_pred.pdb')
+    with open(unrelaxed_pdb_path, 'w') as f:
+        f.write(unrelaxed_pdb)
+
+
+
+##################MAIN#######################
+
+#Parse args
+args = parser.parse_args()
+predict_id = args.predict_id[0]
+MSA_feats = np.load(args.MSA_feats[0], allow_pickle=True)
+peptide_seq = read_fasta(args.peptide_fasta[0])
+num_recycles = args.num_recycles[0]
+params = args.params[0]
+outdir = args.outdir[0]
+
+#Predict
+predict(config.CONFIG,
+            predict_id,
+            MSA_feats,
+            peptide_seq,
+            num_recycles=num_recycles,
+            params=params,
+            outdir=outdir)
