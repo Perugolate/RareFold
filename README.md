@@ -58,6 +58,7 @@ The target structure is shown in green, with canonical peptide residues in blue 
 
 For the original version of EvoBind with regular amino acids, see: https://github.com/patrickbryant1/EvoBind
 
+Run the test case
 ```
 conda activate rarefold
 bash design.sh
