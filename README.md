@@ -9,7 +9,7 @@ Structure prediction and design of proteins with noncanonical amino acids.
 [Read more here]:(link)
 
 
-<img src="./RareFold.svg"/>
+<img src="./data/RareFold.svg"/>
 
 # LICENSE
 RareFold is available under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).  \
@@ -49,9 +49,9 @@ bash predict.sh
 ## Design linear or cyclic peptide binders incorporating noncanonical amino acids
 
 <p align="center">
-  <img alt="Linear" src="./linear.gif" width="45%">
+  <img alt="Linear" src="./data/linear.gif" width="45%">
 &nbsp; &nbsp; &nbsp; &nbsp;
-  <img alt="Cyclic" src="./cyclic.gif" width="45%">
+  <img alt="Cyclic" src="./data/cyclic.gif" width="45%">
 </p>
 
 The target structure is shown in green, with canonical peptide residues in blue and noncanonical residues in magenta.
