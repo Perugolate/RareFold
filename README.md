@@ -1,7 +1,7 @@
 # RareFold
 Structure prediction and design of proteins with noncanonical amino acids.
 
-**RareFold** predicts single-chain protein structures containing noncanonical amino acids and enables the design of novel peptide binders through the EvoBindRare framework. \
+**RareFold** predicts single-chain protein structures containing the more *rare* noncanonical amino acids and enables the design of novel peptide binders through the EvoBindRare framework. \
 \
 **EvoBindRare** designs both linear and cyclic binders directly from a protein target sequence, no prior knowledge of binding sites is required (though optional). The framework enables rapid and flexible design with expanded chemical diversity through the incorporation of noncanonical amino acids. EvoBindRare has been experimentally validated for both linear and cyclic designs, achieving high-affinity binding in each case.
 
