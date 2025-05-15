@@ -35,11 +35,15 @@ fi
 #########Step2: Make MSA features#########
 #Here we also use "FASTAWITHX", the NCAA frames and features are mapped
 #later in the predict script when the MSA is sampled
-python3 $BASE/src/make_msa_seq_feats.py --input_fasta_path $FASTAWITHX \
---input_msas $MSA --outdir $OUTDIR
+MSA_FEATS=$OUTDIR/msa_features.pkl
+if test -f $MSA_FEATS; then
+	echo $MSA_FEATS exists
+else
+	python3 $BASE/src/make_msa_seq_feats.py --input_fasta_path $FASTAWITHX \
+	--input_msas $MSA --outdir $OUTDIR
+fi
 
 #########Step3: Predict#########
-MSA_FEATS=$OUTDIR/msa_features.pkl
 
 python3 ./src/predict_sc.py --predict_id $ID \
 --MSA_feats $MSA_FEATS \

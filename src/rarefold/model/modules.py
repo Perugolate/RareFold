@@ -270,7 +270,7 @@ class rarefoldIteration(hk.Module):
       return ret
 
 
-class rarefold(hk.Module):
+class RareFold(hk.Module):
   """rarefold model with recycling.
 
   Jumper et al. (2021) Suppl. Alg. 2 "Inference"

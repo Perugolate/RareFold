@@ -41,7 +41,7 @@ class RunModel:
     self.params = params
 
     def _forward_fn(batch):
-      model = modules.rarefold(self.config.model)
+      model = modules.RareFold(self.config.model)
       return model(
           batch,
           is_training=False,

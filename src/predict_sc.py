@@ -30,6 +30,7 @@ import pandas as pd
 import numpy as np
 from scipy.special import softmax
 import copy
+import re
 import pdb
 
 
@@ -73,29 +74,37 @@ def process_features(raw_features, config, random_seed):
                                             config=config,
                                             random_seed=random_seed)
 
+def make_features(feature_dict, int_protein_seq, config):
+    """Make the features
 
-
-def add_input_feats(new_feature_dict, config):
+    #From MSA feats
+    'aatype',
+    'between_segment_residues',
+    'domain_name',
+    'residue_index',
+    'seq_length',
+    'sequence',
+    'deletion_matrix_int',
+    'msa',
+    'num_alignments'
     """
-    Load all input feats.
-    """
 
+    #Add int_seq
+    feature_dict['int_seq'] = np.array(int_protein_seq)
 
     #Number of possible amino acids
     num_AAs = len(residue_constants.restype_name_to_atom14_names.keys())
     #Max number of atoms per amino acid in the dense representation
     num_dense_atom_max = len(residue_constants.restype_name_to_atom14_names['ALA'])
+    #Onehot
+    feature_dict['aatype'] = np.eye(num_AAs)[feature_dict['int_seq']]
     #Process the features on CPU (sample MSA)
     #This also creates mappings for the atoms: 'residx_atom14_to_atom37', 'residx_atom37_to_atom14', 'atom37_atom_exists'
-    new_feature_dict['aatype'] =  np.eye(num_AAs)[new_feature_dict['int_seq']]
-    processed_feature_dict = process_features(new_feature_dict, config, np.random.choice(sys.maxsize))
+    processed_feature_dict = process_features(feature_dict, config, np.random.choice(sys.maxsize))
 
     #Arrange feats
-    batch_ex = copy.deepcopy(new_feature_dict)
-
-    #If Rare amino acids in the receptor - this has to be specified here
-    #batch_ex['aatype'] = rare_feats['onehot_seq'] #Use the sequence from the structure here - RARE!!!
-    batch_ex['aatype'] = new_feature_dict['int_seq']
+    batch_ex = copy.deepcopy(feature_dict)
+    batch_ex['aatype'] = feature_dict['int_seq']
     batch_ex['seq_mask'] = processed_feature_dict['seq_mask']
     batch_ex['msa_mask'] = processed_feature_dict['msa_mask']
     batch_ex['residx_atom14_to_atom37'] = processed_feature_dict['residx_atom14_to_atom37']
@@ -110,64 +119,11 @@ def add_input_feats(new_feature_dict, config):
     batch_ex['msa_feat'] = processed_feature_dict['msa_feat']
 
     #Target feats have to be updated with the onehot_seq from the structure to include the modified amino acids
-    batch_ex['target_feat'] =  np.eye(num_AAs)[new_feature_dict['int_seq']]
+    batch_ex['target_feat'] =  np.eye(num_AAs)[feature_dict['int_seq']]
     batch_ex['atom14_atom_exists'] = processed_feature_dict['atom14_atom_exists']
     batch_ex['residue_index'] = processed_feature_dict['residue_index']
 
     return batch_ex
-
-
-def update_features(feature_dict, int_peptide_seq, config):
-    """Update the features to include the binder sequence
-
-    #From MSA feats
-    'aatype',
-    'between_segment_residues',
-    'domain_name',
-    'residue_index',
-    'seq_length',
-    'sequence',
-    'deletion_matrix_int',
-    'msa',
-    'num_alignments'
-    """
-
-    #Save
-    new_feature_dict = {}
-    peptide_length = len(int_peptide_seq)
-    #Add peptide feats to feature dict
-    #aatype
-    new_feature_dict['int_seq'] = np.concatenate((np.argmax(feature_dict['aatype'],axis=1), np.array(int_peptide_seq)),axis=0)
-    #between_segment_residues
-    new_feature_dict['between_segment_residues'] = np.concatenate((feature_dict['between_segment_residues'],np.zeros((peptide_length), dtype=np.int32)),axis=0)
-    #residue_index
-    new_feature_dict['residue_index'] = np.concatenate((feature_dict['residue_index'],np.array(range(peptide_length), dtype=np.int32)+feature_dict['residue_index'][-1]+201), axis=0)
-    #seq_length
-    new_feature_dict['seq_length'] = np.array([new_feature_dict['int_seq'].shape[0]] * new_feature_dict['int_seq'].shape[0], dtype=np.int32)
-
-    #Merge MSA features
-    #deletion_matrix_int
-    new_feature_dict['deletion_matrix_int']=np.concatenate((feature_dict['deletion_matrix_int'],
-                                            np.zeros((feature_dict['deletion_matrix_int'].shape[0],peptide_length))), axis=1)
-    #msa
-    peptide_msa = np.zeros((feature_dict['msa'].shape[0],peptide_length),dtype=int)
-    peptide_msa[:,:] = 21
-    #Assign first seq - need to have X instead of mod AAs
-    """
-    HHBLITS_AA_TO_ID = {'A': 0,'B': 2,'C': 1,'D': 2,'E': 3,'F': 4,'G': 5,'H': 6,'I': 7,'J': 20,'K': 8,'L': 9,'M': 10,'N': 11,
-                        'O': 20,'P': 12,'Q': 13,'R': 14,'S': 15,'T': 16,'U': 1,'V': 17,'W': 18,'X': 20,'Y': 19,'Z': 3,'-': 21,}
-    """
-    x = copy.deepcopy(np.array(int_peptide_seq))
-    x[x>19]=20
-    peptide_msa[0,:] = x
-
-    new_feature_dict['msa']=np.concatenate((feature_dict['msa'], peptide_msa), axis=1)
-
-    #num_alignments
-    new_feature_dict['num_alignments']=np.concatenate((feature_dict['num_alignments'], feature_dict['num_alignments'][:peptide_length]), axis=0)
-
-    #Process
-    new_feature_dict = add_input_feats(new_feature_dict, config)
 
 
     return new_feature_dict
@@ -213,14 +169,13 @@ def predict(config,
     int_protein_seq = [*np.argmax(MSA_feats['aatype'],axis=1)]
     int_protein_seq, mapped_protein_seq = get_int_seq(int_protein_seq, protein_seq)
 
-    print('Using protein sequence', mapped_protein_seq)
-    pdb.set_trace()
+    print('Using protein sequence (threeletter code)', mapped_protein_seq)
 
     #Define the forward function
     def _forward_fn(batch):
         '''Define the forward function - has to be a function for JAX
         '''
-        model = modules.AlphaFold(config.model)
+        model = modules.RareFold(config.model)
 
         return model(batch,
                     is_training=False,
@@ -237,14 +192,24 @@ def predict(config,
 
     #Load params (need to do this here - need to enable GPU through jax first)
     params = np.load(params , allow_pickle=True)
+    #Fix naming - tha params are saved using an old naming (alphafold)
+    new_params = {}
+    for key in params:
+        new_key = re.sub('alphafold', 'rarefold', key)
+        new_params[new_key] = params[key]
+    params = new_params
+
     #Get a feature dict that includes the peptide
-    new_feature_dict = update_features(MSA_feats, int_peptide_seq, config)
+    feature_dict = make_features(MSA_feats, int_protein_seq, config)
     batch = {}
-    for key in new_feature_dict:
-        batch[key] = np.reshape(new_feature_dict[key], (1, *new_feature_dict[key].shape))
+    for key in feature_dict:
+        batch[key] = np.reshape(feature_dict[key], (1, *feature_dict[key].shape))
     batch['num_iter_recycling'] = [num_recycles]
 
+    print('Predicting...')
+    t0=time.time()
     prediction_result = apply_fwd(params, rng, batch)
+    print('Prediction took', time.time()-t0, 's.')
     #Save structure
     save_feats = {'aatype':batch['aatype'], 'residue_index':batch['residue_index']}
     result = {'predicted_lddt':prediction_result['predicted_lddt'],
@@ -291,6 +256,9 @@ protein_seq = read_fasta(args.fasta[0])
 num_recycles = args.num_recycles[0]
 params = args.params[0]
 outdir = args.outdir[0]
+
+#Set cyclic offset to None - used for cyclic peptide binder design
+config.CONFIG.model.embeddings_and_evoformer['cyclic_offset'] = None
 
 #Predict
 predict(config.CONFIG,
