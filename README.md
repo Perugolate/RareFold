@@ -16,7 +16,7 @@ The design protocol EvoBindRare and the parameters for design are made available
 ## (several minutes)
 The entire installation takes <1 hour on a standard computer. \
 We assume you have CUDA12. For CUDA11, you will have to change the installation of some packages. \
-The runtime will depend on the GPU you have available and the size of the protein-ligand complex you are predicting. \
+The runtime will depend on the GPU you have available and the size of the protein you are predicting. \
 On an NVIDIA A100 GPU, the prediction time is a few minutes on average.
 
 First install miniconda, see: https://docs.conda.io/projects/miniconda/en/latest/miniconda-install.html or https://docs.conda.io/projects/miniconda/en/latest/miniconda-other-installer-links.html
