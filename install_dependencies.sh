@@ -3,17 +3,18 @@ conda env create -f environment.yml
 
 wait
 conda activate rarefold
-pip install --upgrade "jax[cuda12_pip]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
-pip install --upgrade numpy
+pip install -q --no-warn-conflicts numpy==1.26.4
+pip install -q --no-warn-conflicts 'jax[cuda12_pip]'==0.4.35 -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 conda deactivate
 
 ## Get network parameters for Umol (a few minutes)
 #Pocket params
-wget /params20000.npy
+ZENODO=
+wget $ZENODO/params20000.npy
 mkdir data/params
 mv params20000.npy  data/params/
 #No-pocket params
-wget /finetuned_params25000.npy
+wget $ZENODO/finetuned_params25000.npy
 mv finetuned_params25000.npy data/params/
 
 wait
