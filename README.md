@@ -50,6 +50,8 @@ bash predict.sh
 
 The target structure is shown in green, with canonical peptide residues in blue and noncanonical residues in magenta.
 
+For the original version of EvoBind with regular amino acids, see: https://github.com/patrickbryant1/EvoBind
+
 ```
 conda activate rarefold
 bash design.sh
