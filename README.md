@@ -4,7 +4,6 @@ Structure prediction and design of proteins with noncanonical amino acids
 <img src="./RareFold.svg"/>
 
 # LICENSE
-Summary: \
 Prediction with RareFold - **Open** \
 Design - **NonCommercial**
 
@@ -40,4 +39,5 @@ bash predict.sh
 ```
 
 
-# Design linear or cyclic peptide binders with noncanonical amino acids
+# EvoBindRare
+## Design linear or cyclic peptide binders with noncanonical amino acids
