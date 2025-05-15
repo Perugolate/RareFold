@@ -48,3 +48,6 @@ python3 $BASE/src/mc_design_improved.py --predict_id $ID \
 --cyclic_offset $CYCLIC \
 --save_best_only $SAVE_BEST_ONLY \
 --outdir $OUTDIR
+
+#The design process can result in clashes - especially in the cyclic case.
+#We recommend running relax, but don't provide this for modified residues
