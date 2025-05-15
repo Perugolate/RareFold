@@ -31,7 +31,7 @@ bash install_dependencies.sh
 3. Get Uniclust for MSA search
 4. Install the RareFold environment
 
-# Predict using the forward model
+# Predict using RareFold
 ## Run the test case (a few minutes)
 ```
 conda activate rarefold
@@ -39,7 +39,7 @@ bash predict.sh
 ```
 
 
-# EvoBindRare
+# Design using EvoBindRare
 ## Design linear or cyclic peptide binders incorporating noncanonical amino acids
 <p align="center">
   <img alt="Linear" src="./linear.gif" width="45%">
