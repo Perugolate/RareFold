@@ -40,4 +40,9 @@ bash predict.sh
 
 
 # EvoBindRare
-## Design linear or cyclic peptide binders with noncanonical amino acids
+## Design linear or cyclic peptide binders incorporating noncanonical amino acids
+
+```
+conda activate rarefold
+bash design.sh
+```
