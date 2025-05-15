@@ -1,6 +1,4 @@
-
-
-#############PARAMETERS#############
+#############ARGS#############
 BASE=. #Change this depending on your local path
 ID=1FU0
 DATADIR=$BASE/data/predict_test_case/$ID

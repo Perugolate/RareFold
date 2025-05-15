@@ -5,8 +5,6 @@ import pathlib
 import pickle
 import random
 import sys
-sys.path.insert(0, '/proj/berzelius-2023-267/users/x_patbr/software/rare_fold/src/net/')
-sys.path.insert(0, '/home/bryant/software/rare_fold/src/net/')
 import time
 from typing import Dict, Optional
 from typing import NamedTuple
@@ -26,17 +24,17 @@ from collections import Counter
 from scipy.special import softmax
 import copy
 from ast import literal_eval
+import re
 
 import pdb
 
 
-#AlphaFold imports - now RareFold
-from alphafold.common import protein
-from alphafold.common import residue_constants
-from alphafold.model import data
-from alphafold.model import config
-from alphafold.model import features
-from alphafold.model import modules
+from rarefold.common import protein
+from rarefold.common import residue_constants
+from rarefold.model import data
+from rarefold.model import config
+from rarefold.model import features
+from rarefold.model import modules
 
 #JAX will preallocate 90% of currently-available GPU memory when the first JAX operation is run.
 #This prevents this
@@ -56,6 +54,7 @@ parser.add_argument('--batch_size', nargs=1, type= int, default=sys.stdin, help 
 parser.add_argument('--params', nargs=1, type= str, default=sys.stdin, help = 'Params to use.')
 parser.add_argument('--rare_AAs', nargs=1, type= str, default=sys.stdin, help = 'List of rare amino acids to use in the design.')
 parser.add_argument('--cyclic_offset', nargs=1, type= str, default=sys.stdin, help = 'Use a cyclic offset for the binder (True) or not (False).')
+parser.add_argument('--save_best_only', nargs=1, type= str, default=sys.stdin, help = 'Save only design improvements (True), otherwise save all.')
 parser.add_argument('--outdir', nargs=1, type= str, default=sys.stdin, help = 'Path to output directory. Include /in end')
 
 ##############FUNCTIONS##############
@@ -395,6 +394,7 @@ def design_binder(config,
                 batch_size=1,
                 params=None,
                 rare_AAs=['MSE'],
+                save_best_only=save_best_only,
                 outdir=None):
     """Design a binder
     """
@@ -416,7 +416,7 @@ def design_binder(config,
     def _forward_fn(batch):
         '''Define the forward function - has to be a function for JAX
         '''
-        model = modules.AlphaFold(config.model)
+        model = modules.RareFold(config.model)
 
         return model(batch,
                     is_training=False,
@@ -436,6 +436,13 @@ def design_binder(config,
 
     #Load params (need to do this here - need to enable GPU through jax first)
     params = np.load(params, allow_pickle=True)
+    #Fix naming - tha params are saved using an old naming (alphafold)
+    new_params = {}
+    for key in params:
+        new_key = re.sub('alphafold', 'rarefold', key)
+        new_params[new_key] = params[key]
+    params = new_params
+
 
 
     ####Run the directed evolution####
@@ -588,8 +595,13 @@ def design_binder(config,
         int_binder_seqs = []
         for i in range(len(best_inds)):
             int_binder_seqs.append(sequence_scores['int_seq'][best_inds[i]][i])
-            #Check if improvement --> save
-            if best_inds[i]==len(sequence_scores['loss'])-1:
+
+            if save_best_only=='True':
+                #Check if improvement --> save
+                if best_inds[i]==len(sequence_scores['loss'])-1:
+                    #Save structure
+                    save_structure(batch, prediction_result, i, 'unrelaxed_'+str(niter), outdir)
+            else:
                 #Save structure
                 save_structure(batch, prediction_result, i, 'unrelaxed_'+str(niter), outdir)
 
@@ -647,6 +659,7 @@ if cyclic_offset=='True':
     cyclic_offset=True
 else:
     cyclic_offset=None
+save_best_only = args.save_best_only[0]
 outdir = args.outdir[0]
 
 
@@ -664,4 +677,5 @@ design_binder(config.CONFIG,
             batch_size=batch_size,
             params=params,
             rare_AAs=rare_AAs,
+            save_best_only=save_best_only,
             outdir=outdir)

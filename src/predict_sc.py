@@ -137,6 +137,8 @@ def get_int_seq(int_protein_seq, protein_seq):
 
     all_AAs = np.array([*residue_constants.restype_name_to_atom14_names.keys()])
 
+    pdb.set_trace()
+
     ps = protein_seq.split('-') #Split to get NCAAs
     psi = 0 #Keep track of split index
     for i in np.argwhere(np.array(int_protein_seq)==20)[:,0]:
