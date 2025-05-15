@@ -44,7 +44,7 @@ else
 fi
 
 #########Step3: Predict#########
-
+#The NCAAs will be saved to chain B in the prediction for easier visualisation
 python3 ./src/predict_sc.py --predict_id $ID \
 --MSA_feats $MSA_FEATS \
 --fasta $FASTAFILE \
