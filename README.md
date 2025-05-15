@@ -41,11 +41,14 @@ bash predict.sh
 
 # Design using EvoBindRare
 ## Design linear or cyclic peptide binders incorporating noncanonical amino acids
+
 <p align="center">
   <img alt="Linear" src="./linear.gif" width="45%">
 &nbsp; &nbsp; &nbsp; &nbsp;
   <img alt="Cyclic" src="./cyclic.gif" width="45%">
 </p>
+The target structure is represented in green, the regular binder residues in
+blue and the noncanonical ones in magenta.
 
 ```
 conda activate rarefold
