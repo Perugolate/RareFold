@@ -7,3 +7,4 @@ src/.DS_Store
 data/params/*.npy
 data/design_test_case/1ssc/unrelaxed*.pdb
 data/design_test_case/1ssc/init*.pdb
+data/design_test_case/1ssc/metrics.csv

@@ -35,6 +35,7 @@ fi
 
 
 #######Then design#######
+#All metrics will be saved to "metrics.csv"
 python3 $BASE/src/mc_design_improved.py --predict_id $ID \
 --MSA_feats $MSA_FEATS \
 --num_recycles $MAX_RECYCLES \
