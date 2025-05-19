@@ -9,7 +9,7 @@ conda deactivate
 
 ## Get network parameters for Umol (a few minutes)
 #Pocket params
-ZENODO=
+ZENODO=https://zenodo.org/records/14892196/files
 wget $ZENODO/params20000.npy
 mkdir data/params
 mv params20000.npy  data/params/
