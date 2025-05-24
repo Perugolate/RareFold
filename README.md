@@ -68,3 +68,9 @@ Run the test case
 conda activate rarefold
 bash design.sh
 ```
+
+
+# Citation
+If you use RareFold in your research, please cite
+
+1. [Li Q, Daumiller D, Bryant P. RareFold: Structure prediction and design of proteins with noncanonical amino acids. bioRxiv. 2025. p. 2025.05.19.654846. doi:10.1101/2025.05.19.654846](https://www.biorxiv.org/content/10.1101/2025.05.19.654846v1)
