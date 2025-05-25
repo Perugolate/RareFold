@@ -1,5 +1,11 @@
 # RareFold
 Structure prediction and design of proteins with noncanonical amino acids.
+RareFold supports 49 different amino acid types:
+The 20 regular ones:
+ALA, ARG, ASN, ASP, CYS, GLN, GLU, GLY, HIS, ILE, LEU, LYS, MET, PHE, PRO, SER, THR, TRP, TYR, VAL,
+and 29 **rare** ones: 
+**MSE, TPO, MLY, CME, PTR, SEP,SAH, CSO, PCA, KCX, CAS, CSD, MLZ, OCS, ALY, CSS, CSX, HIC, HYP, YCM, YOF, M3L, PFF, CGU,FTR, LLP, CAF, CMH, MHO**
+
 
 **RareFold** predicts single-chain protein structures containing the more *rare* noncanonical amino acids and enables the design of novel peptide binders through the EvoBindRare framework. \
 \
