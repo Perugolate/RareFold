@@ -1,7 +1,7 @@
 # RareFold
-Structure prediction and design of proteins with noncanonical amino acids. \
+Structure prediction and design of proteins with noncanonical amino acids.
 
-**RareFold** predicts single-chain protein structures containing the more *rare* noncanonical amino acids and enables the design of novel peptide binders through the EvoBindRare framework. \
+**RareFold** predicts single-chain protein structures containing the more *rare* noncanonical amino acids and enables the design of novel peptide binders through the EvoBindRare framework.
 
 RareFold supports 49 different amino acid types.\
 The 20 regular ones:\
