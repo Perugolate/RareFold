@@ -7,13 +7,13 @@ pip install -q --no-warn-conflicts numpy==1.26.4
 pip install -q --no-warn-conflicts 'jax[cuda12_pip]'==0.4.35 -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 conda deactivate
 
-## Get network parameters for Umol (a few minutes)
-#Pocket params
+## Get network parameters for RareFold (a few minutes)
+#RareFold
 ZENODO=https://zenodo.org/records/14892196/files
 wget $ZENODO/params20000.npy
 mkdir data/params
 mv params20000.npy  data/params/
-#No-pocket params
+#EvoBindRare
 wget $ZENODO/finetuned_params25000.npy
 mv finetuned_params25000.npy data/params/
 
