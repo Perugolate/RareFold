@@ -481,11 +481,11 @@ def design_binder(config,
         print('Predicting init...')
         t0 = time.time()
         prediction_result = vmap_apply_fwd(params, rng, batch)
-        print('Init took',time.time()-t0,'s')
+        #print('Init took',time.time()-t0,'s')
         #Save all init
         t0 = time.time()
         [save_structure(batch, prediction_result, i, 'init', outdir) for i in range(batch_size)]
-        print('Saving init took',time.time()-t0,'s')
+        #print('Saving init took',time.time()-t0,'s')
 
         #Loss
         iter_loss_metrics = [get_loss(prediction_result, i, binder_length) for i in range(batch_size)]
@@ -513,6 +513,7 @@ def design_binder(config,
     #These are index-based, following the same order as in resiue_constants (used for the int_seq)
     restype_atom_mappings, num_AAs = get_atom_mapping_per_restype()
 
+    print('Iteration', 'plDDT', if_dist_binder', 'inter_clash_fracs', 'intra_clash_fracs', 'loss', 'binder_seq')
 
     #Iterate - mutate - score - repeat
     for niter in range(len(sequence_scores['iteration']), num_iterations+1):
@@ -522,7 +523,7 @@ def design_binder(config,
         mut_seqs = [mutate_sequence(int_binder_seqs[i], np.array(sequence_scores['int_seq'])[:,i], all_AA_triplets, selected_AA_index) for i in range(batch_size)]
         int_binder_seqs = [x[0] for x in mut_seqs]
         binder_seqs = [x[1] for x in mut_seqs]
-        print('Mutating sequences took', time.time() - t_0,'s')
+        #print('Mutating sequences took', time.time() - t_0,'s')
 
         t_0 = time.time()
         if niter%resample_every_n==0:
@@ -539,17 +540,17 @@ def design_binder(config,
             #Update feats with binder seq
             t_0 = time.time()
             batch = update_peptide_batch_feats(batch, np.array(int_binder_seqs), binder_length, num_AAs, restype_atom_mappings)
-        print('Making new feats took', time.time() - t_0,'s')
+        #print('Making new feats took', time.time() - t_0,'s')
 
         #Predict - vmap over batch dim
         t_0 = time.time()
         prediction_result = vmap_apply_fwd(params, rng, batch)
-        print('Prediction took', time.time() - t_0,'s')
+        #print('Prediction took', time.time() - t_0,'s')
 
         #Get loss
         t_0 = time.time()
         iter_loss_metrics = [get_loss(prediction_result, i, binder_length) for i in range(batch_size)]
-        print('Loss calcs took', time.time() - t_0,'s')
+        #print('Loss calcs took', time.time() - t_0,'s')
 
         t_0 = time.time()
         if_dist_binder = np.array([x[0] for x in iter_loss_metrics])
@@ -588,7 +589,7 @@ def design_binder(config,
                 save_structure(batch, prediction_result, i, 'unrelaxed_'+str(niter), outdir)
 
 
-        print('Adding metrics took', time.time() - t_0,'s')
+        #print('Adding metrics took', time.time() - t_0,'s')
 
 def save_structure(batch, prediction_result, i, pred_id, outdir):
     """Save prediction
