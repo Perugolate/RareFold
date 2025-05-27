@@ -20,6 +20,10 @@ The design protocol EvoBindRare and the parameters for design are made available
 
 **You may not use these files except in compliance with the licenses.**
 
+# Colab
+It is possible to run EvoBindRare online in the [Google colab here](https://colab.research.google.com/github/patrickbryant1/RareFold/blob/main/rarefold.ipynb)
+
+
 # Installation
 ## (several minutes)
 The entire installation takes <1 hour on a standard computer. \
