@@ -9,14 +9,6 @@ import pickle
 
 import pdb
 
-parser = argparse.ArgumentParser(description = """Builds the input features for the structure prediction model.""")
-
-parser.add_argument('--input_fasta_path', nargs=1, type= str, default=sys.stdin, help = 'Path to fasta.')
-parser.add_argument('--input_msas', nargs=1, type= str, default=sys.stdin, help = 'Path to MSAs. Separated by comma.')
-parser.add_argument('--outdir', nargs=1, type= str, default=sys.stdin, help = 'Path to output directory. Include /in end')
-
-FeatureDict = Mapping[str, np.ndarray]
-
 ##############FUNCTIONS##############
 def make_sequence_features(
     sequence: str, description: str, num_res: int) -> FeatureDict:
@@ -102,21 +94,3 @@ def process(input_fasta_path: str, input_msas: list) -> FeatureDict:
         msas=parsed_msas, deletion_matrices=parsed_delmat)
 
     return {**sequence_features, **msa_features}
-
-
-##################MAIN#######################
-
-#Parse args
-args = parser.parse_args()
-#Data
-input_fasta_path = args.input_fasta_path[0]
-input_msas = args.input_msas[0].split(',')
-outdir = args.outdir[0]
-#Get feats
-feature_dict = process(input_fasta_path, input_msas)
-
-#Write out features as a pickled dictionary.
-features_output_path = os.path.join(outdir, 'msa_features.pkl')
-with open(features_output_path, 'wb') as f:
-    pickle.dump(feature_dict, f, protocol=4)
-print('Saved features to',features_output_path)
