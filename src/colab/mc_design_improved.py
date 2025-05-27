@@ -620,21 +620,3 @@ def save_structure(batch, prediction_result, i, pred_id, outdir):
     unrelaxed_pdb_path = os.path.join(outdir+'/', pred_id+'_'+str(i)+'.pdb')
     with open(unrelaxed_pdb_path, 'w') as f:
         f.write(unrelaxed_pdb)
-
-
-
-##################MAIN#######################
-
-#Predict
-design_binder(config.CONFIG,
-            predict_id,
-            MSA_feats,
-            num_recycles=num_recycles,
-            binder_length=binder_length,
-            num_iterations=num_iterations,
-            resample_every_n=resample_every_n,
-            batch_size=batch_size,
-            params=params,
-            rare_AAs=rare_AAs,
-            save_best_only=save_best_only,
-            outdir=outdir)
