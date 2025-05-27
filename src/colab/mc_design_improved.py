@@ -513,7 +513,7 @@ def design_binder(config,
     #These are index-based, following the same order as in resiue_constants (used for the int_seq)
     restype_atom_mappings, num_AAs = get_atom_mapping_per_restype()
 
-    print('Iteration', 'plDDT', if_dist_binder', 'inter_clash_fracs', 'intra_clash_fracs', 'loss', 'binder_seq')
+    print('Iteration', 'plDDT', 'if_dist_binder', 'inter_clash_fracs', 'intra_clash_fracs', 'loss', 'binder_seq')
 
     #Iterate - mutate - score - repeat
     for niter in range(len(sequence_scores['iteration']), num_iterations+1):
