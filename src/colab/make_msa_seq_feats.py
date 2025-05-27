@@ -9,6 +9,8 @@ import pickle
 
 import pdb
 
+FeatureDict = Mapping[str, np.ndarray]
+
 ##############FUNCTIONS##############
 def make_sequence_features(
     sequence: str, description: str, num_res: int) -> FeatureDict:
