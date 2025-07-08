@@ -145,12 +145,16 @@ def get_int_seq(int_protein_seq, protein_seq):
             AA = ps[psi+1]
         else:
             AA = ps[psi]
-        int_protein_seq[i] = np.argwhere(all_AAs==AA)[0][0]
+        try:
+            int_protein_seq[i] = np.argwhere(all_AAs==AA)[0][0]
+        except:
+            print('Could not map AA', AA)
+            print('The available AAs are', all_AAs)
+            sys.exit()
 
         psi+=1
 
     mapped_protein_seq = '-'.join([all_AAs[x] for x in int_protein_seq])
-
     return int_protein_seq, mapped_protein_seq
 
 def predict(config,
