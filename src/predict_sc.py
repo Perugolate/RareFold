@@ -137,22 +137,28 @@ def get_int_seq(int_protein_seq, protein_seq):
 
     all_AAs = np.array([*residue_constants.restype_name_to_atom14_names.keys()])
 
-    ps = protein_seq.split('-') #Split to get NCAAs
-    psi = 0 #Keep track of split index
-    for i in np.argwhere(np.array(int_protein_seq)==20)[:,0]:
+    #Get all NCAAs
+    pattern = r'-(.*?)-|-(CGU)$'
+    matches = re.findall(pattern, protein_seq)
+    input_ncaas = [match[0] or match[1] for match in matches]
+
+    msa_seq = '-'.join([all_AAs[x] for x in int_protein_seq])
+    print('Your MSA sequence is', msa_seq)
+    mod_inds = np.argwhere(np.array(int_protein_seq)==20)[:,0]
+    print('This contains', len(mod_inds), 'NCAAs at positions', mod_inds)
+    print('You want to have the following NCAAs there', input_ncaas)
+    print('Please make sure this is what you intended.')
+
+    for i in range(len(mod_inds)):
         #Replace
-        if i>0:
-            AA = ps[psi+1]
-        else:
-            AA = ps[psi]
         try:
+            AA = input_ncaas[i]
+            mi = mod_inds[i]
             int_protein_seq[i] = np.argwhere(all_AAs==AA)[0][0]
         except:
-            print('Could not map AA', AA)
+            print('Could not map AA', input_ncaas[i], 'to position', mod_inds[i])
             print('The available AAs are', all_AAs)
             sys.exit()
-
-        psi+=1
 
     mapped_protein_seq = '-'.join([all_AAs[x] for x in int_protein_seq])
     return int_protein_seq, mapped_protein_seq
