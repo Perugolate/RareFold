@@ -8,7 +8,7 @@ import pdb
 
 
 
-parser = argparse.ArgumentParser(description = """Design a binder by scaffolding known residues.""")
+parser = argparse.ArgumentParser(description = """Convert the design metrics to human readable format.""")
 
 parser.add_argument('--raw_metrics', nargs=1, type= str, default=sys.stdin, help = 'Path to csv with raw design metrics.')
 parser.add_argument('--outdir', nargs=1, type= str, default=sys.stdin, help = 'Path to output directory. Include /in end')
