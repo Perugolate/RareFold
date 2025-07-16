@@ -36,7 +36,8 @@ fi
 
 
 #######Then design#######
-#All metrics will be saved to "metrics.csv"
+#All metrics will be saved to "metrics.csv" in outdir
+#If the run stops for some reason - don't worry - it will continue where it left off
 python3 $BASE/src/mc_design_improved.py --predict_id $ID \
 --MSA_feats $MSA_FEATS \
 --num_recycles $MAX_RECYCLES \
@@ -52,3 +53,7 @@ python3 $BASE/src/mc_design_improved.py --predict_id $ID \
 
 #The design process can result in clashes - especially in the cyclic case.
 #We recommend running relax, but don't provide this for modified residues
+
+#######Convert the design metrics to human readable format#######
+python3 $BASE/src/convert_design_metrics_hr.py --raw_metrics $OUTDIR/metrics.csv \
+--outdir $OUTDIR
