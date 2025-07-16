@@ -1,6 +1,7 @@
 import pandas as pd
 import glob
 import numpy as np
+import sys
 from ast import literal_eval
 import argparse
 import pdb
@@ -40,8 +41,7 @@ for i in range(if_dist_binder.shape[1]):
     compiled_df['intra_clash_frac'].extend([*inter_clash_frac[:,i]])
     compiled_df['loss'].extend([*losses[:,i]])
     compiled_df['sequence'].extend([*seqs[:,i]])
-    compiled_df['int_seq'].extend([*seqs[:,i]])
+    compiled_df['int_seq'].extend([*int_seqs[:,i]])
 
 compiled_df = pd.DataFrame.from_dict(compiled_df)
-pdb.set_trace()
 compiled_df.to_csv(outdir+'metrics_hr.csv',index=None)
