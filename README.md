@@ -7,7 +7,7 @@ RareFold supports 49 different amino acid types.\
 The 20 regular ones, and 29 **rare** ones:
 MSE, TPO, MLY, CME, PTR, SEP,SAH, CSO, PCA, KCX, CAS, CSD, MLZ, OCS, ALY, CSS, CSX, HIC, HYP, YCM, YOF, M3L, PFF, CGU,FTR, LLP, CAF, CMH, MHO
 
-**EvoBindRare** designs both linear and cyclic binders directly from a protein target sequence, no prior knowledge of binding sites is required (though optional). The framework enables rapid and flexible design with expanded chemical diversity through the incorporation of noncanonical amino acids. EvoBindRare has been experimentally validated for both linear and cyclic designs, achieving high-affinity binding in each case.
+**EvoBindRare** designs both linear and cyclic binders directly from a protein target sequence, no prior knowledge of binding sites is required. The framework enables rapid and flexible design with expanded chemical diversity through the incorporation of noncanonical amino acids. EvoBindRare has been experimentally validated for both linear and cyclic designs, achieving high-affinity binding in each case.
 
 [Read more here](https://www.biorxiv.org/content/10.1101/2025.05.19.654846v1)
 
@@ -25,7 +25,6 @@ It is possible to run EvoBindRare online in the [Google colab here](https://cola
 
 
 # Installation
-## (several minutes)
 The entire installation takes <1 hour on a standard computer. \
 We assume you have CUDA12. For CUDA11, you will have to change the installation of some packages. \
 The runtime will depend on the GPU you have available and the size of the protein you are predicting. \
